@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model CNH {
+  id               Int             @id @default(autoincrement())
+  Register         String          @db.VarChar(14)
+  ExpireDate       DateTime
+  FirstDocument    DateTime
+  Category         String          @db.Char(1)
+  Employee         Employee?
+}
+
+model Address {
+  id               Int          @id @default(autoincrement())
+  Street           String       @db.VarChar(255)
+  Number           Int          @db.Int
+  Neighborhood     String       @db.VarChar(255)
+  City             String       @db.VarChar(255)
+  State            String       @db.VarChar(255)
+  Employee         Employee?
+  School           School?
+  Kid              Kid?
+}
+
+model Responsible {
+  id               Int          @id @default(autoincrement())
+  Name             String       @db.VarChar(255)
+  Email            String       @db.VarChar(255)
+  ComercialPhone   String       @db.VarChar(11)
+  PersonalPhone    String       @db.VarChar(11)
+  Kid              Kid[]
+  Payments         Payment[]
+}
+
+model Employee {
+  id               Int          @id @default(autoincrement())
+  Name             String       @db.VarChar(255)
+  BirthDate        DateTime
+  CNH              CNH          @relation(fields: [CNHId], references: [id])
+  CNHId            Int          @unique
+  Rg               String       @db.VarChar(9)
+  Cpf              String       @db.VarChar(11)
+  ResidencialPhone String       @db.VarChar(11)
+  PersonalPhone    String       @db.VarChar(11)
+  Email            String       @db.VarChar(255)
+  Address          Address      @relation(fields: [AddressId], references: [id])
+  AddressId        Int          @unique
+  AdmissionDate    DateTime
+  CheckInTime      DateTime     @db.Time
+  CheckOutTime     DateTime     @db.Time
+  Position         String       @db.VarChar(255)
+  Salary           Int          @db.Int  
+  Van              Van?
+}
+
+model School {
+  id               Int          @id @default(autoincrement())
+  Name             String       @db.VarChar(255)
+  Address          Address      @relation(fields: [AddressId], references: [id])
+  AddressId        Int          @unique
+  Kid              Kid?
+  Van              Van[]
+}
+
+model Kid {
+  id               Int          @id @default(autoincrement())
+  Name             String       @db.VarChar(255)
+  BirthDate        DateTime
+  Address          Address      @relation(fields: [AddressId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  AddressId        Int          @unique
+  School           School       @relation(fields: [SchoolId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  SchoolId         Int          @unique
+  Responsible      Responsible  @relation(fields: [ResponsibleId], references: [id])
+  ResponsibleId    Int          @unique
+  Route            Route[]
+  Payments         Payment[]
+}
+
+model Van {
+  id               Int          @id @default(autoincrement())
+  brand            String       @db.VarChar(255)
+  model            String       @db.VarChar(255)
+  plate            String       @db.VarChar(255)
+  year             Int
+  capacity         Int
+  ExitTime         DateTime
+  DeliverTime      DateTime
+  School           School       @relation(fields: [SchoolId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  SchoolId         Int
+  Employee         Employee     @relation(fields: [EmployeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  EmployeeId       Int          @unique
+  Route            Route[]
+}
+
+model Route {
+  id               Int          @id @default(autoincrement())
+  Kid              Kid          @relation(fields: [KidId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  KidId            Int
+  Van              Van          @relation(fields: [VanId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  VanId            Int
+}
+
+model Payment {
+  id               Int          @id @default(autoincrement())
+  Responsible      Responsible  @relation(fields: [ResponsibleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  ResponsibleId    Int
+  Kid              Kid          @relation(fields: [KidId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  KidId            Int
+  Value            Float
+  PaymentDate      DateTime
+}
