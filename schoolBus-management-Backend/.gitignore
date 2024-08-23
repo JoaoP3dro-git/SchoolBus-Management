@@ -1,3 +1,4 @@
 node_modules
 # Keep environment variables out of version control
-.env
+.env 
+# DATABASE_URL = "sqlserver://SNCCH01LABF22\TEW_SQLEXPRESS;database=pedro;user=pedro;password=pedro;trustServerCertificate=true"
